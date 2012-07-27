@@ -1,5 +1,2 @@
-unit-test: virtualenv
-	nosetests tests/unit
-
-virtualenv:
-	. env/bin/activate
+unit-test:
+	PYTHONPATH=. nosetests tests/unit
