@@ -2,6 +2,22 @@ import mock
 
 
 def multipatch(*multipatches, **patches):
+    """
+    Builds a collection of `mock.patch`es that are managed
+    all within the same context.
+
+    Args:
+        multipatches: other `multipatch`es to merge with.
+        patches: named instances of `mock.patch` to incorporate.
+    Returns:
+        a context manager that will start/stop the contained patches.
+    Raises:
+        ValueError: the same name is being used for multiple patches.
+    Remarks:
+        Another multipatch can be treated like a patch by giving it a name.
+        The start and stop functions can be used to manage the context
+        manually.
+    """
     collection = _PatchCollection()
 
     # aggregate other multipatchers
@@ -58,5 +74,7 @@ class _PatchCollection(object):
 
     def __getattr__(self, name):
         if not self.__isStarted or name not in self.__mocks:
-            raise AttributeError()
+            format = 'There was no patch with the given name: {0}'
+            message = format.format(name)
+            raise AttributeError(message)
         return self.__mocks[name]
