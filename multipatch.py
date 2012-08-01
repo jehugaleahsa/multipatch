@@ -1,6 +1,3 @@
-import mock
-
-
 def multipatch(*multipatches, **patches):
     """
     Builds a collection of `mock.patch`es that are managed
@@ -63,7 +60,7 @@ class _PatchCollection(object):
             for name in self.__patches:
                 patch = self.__patches[name]
                 patch.stop()
-            self.__mocks.clear() # not born from a unit test
+            self.__mocks.clear()  # not born from a unit test
             self.__isStarted = False
 
     def __enter__(self):

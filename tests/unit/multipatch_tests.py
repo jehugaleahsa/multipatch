@@ -16,7 +16,7 @@ class MultipatchTester(unittest.TestCase):
         with multipatch(
             class1=mock.patch('multipatch_tests.Class1'),
             class2=mock.patch('multipatch_tests.Class2'),
-        ) as patcher:
+        ):
             self.assertIsInstance(Class1(), mock.Mock,
                 "The first class was not patched.")
             self.assertIsInstance(Class2(), mock.Mock,
@@ -33,7 +33,7 @@ class MultipatchTester(unittest.TestCase):
 
         with multipatch(
             class1=mock.patch('multipatch_tests.Class1')
-        ) as patcher:
+        ):
             self.assertIsInstance(Class1(), mock.Mock,
                 "The class was not patched.")
 
@@ -49,10 +49,10 @@ class MultipatchTester(unittest.TestCase):
             patcher.start()
             self.assertTrue(hasattr(patcher, 'class1'),
                 "The patch was not added as an attribute.")
-    
+
             self.assertIsInstance(patcher.class1, mock.Mock,
                 "The patch attribute is not a mock.")
-    
+
             self.assertIs(patcher.class1, patcher.class1,
                 "The same mock was not returned for the attribute.")
         finally:
@@ -86,9 +86,9 @@ class MultipatchTester(unittest.TestCase):
         patch2 = multipatch(class2=mock.patch('multipatch_tests.Class2'))
         patch = multipatch(patch1, patch2)
         with patch as patcher:
-            self.assertTrue(hasattr(patcher, 'class1'), 
+            self.assertTrue(hasattr(patcher, 'class1'),
                 'The first patch was not copied.')
-            self.assertTrue(hasattr(patcher, 'class2'), 
+            self.assertTrue(hasattr(patcher, 'class2'),
                 'The second patch was not copied.')
 
     def testMultipatch_duplicatePatch_pm_raisesValueError(self):
@@ -97,8 +97,8 @@ class MultipatchTester(unittest.TestCase):
         self.assertRaises(
             ValueError,
             multipatch,
-            patch1, # has class1
-            class1=mock.patch('multipatch_tests.Class2')
+            patch1,  # has class1
+            class1=mock.patch('multipatch_tests.Class2'),
         )
 
     def testMultipatch_duplicatePatch_mm_raisesValueError(self):
