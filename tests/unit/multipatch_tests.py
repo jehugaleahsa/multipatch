@@ -1,5 +1,16 @@
-import mock
-import unittest
+import sys
+
+version = sys.version_info
+
+if version < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
+
+if version < (3, 3):
+    import mock
+else:
+    import unittest.mock as mock
 
 from multipatch import multipatch
 

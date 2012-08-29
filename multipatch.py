@@ -1,3 +1,11 @@
+import sys
+version = sys.version_info
+if version < (3, 3):
+    import contextlib2 as contextlib
+else:
+    import contextlib
+
+
 def multipatch(*multipatches, **patches):
     """
     Builds a collection of `mock.patch`es that are managed
@@ -31,37 +39,35 @@ def multipatch(*multipatches, **patches):
 
 class _PatchCollection(object):
     def __init__(self):
-        self.__isStarted = False
-        self.__patches = {}
+        self.__patches = []
         self.__mocks = {}
+        self.__stack = None
 
     def _addPatch(self, name, patch):
-        if name in self.__patches:
+        if name in self.__mocks:
             format = 'A patch with the same name already exists: {0}.'
             message = format.format(name)
             raise ValueError(message)
-        self.__patches[name] = patch
+        self.__patches.append((name, patch))
+        self.__mocks[name] = None
 
     def _copyPatches(self, other):
-        for name in other.__patches:
-            patch = other.__patches[name]
+        for name, patch in other.__patches:
             self._addPatch(name, patch)
 
     def start(self):
-        if not self.__isStarted:
-            self.__isStarted = True
-            for name in self.__patches:
-                patch = self.__patches[name]
-                self.__mocks[name] = patch.start()
+        if self.__stack is None:
+            self.__stack = contextlib.ExitStack()
+            for name, patch in self.__patches:
+                self.__mocks[name] = self.__stack.enter_context(patch)
         return self
 
     def stop(self):
-        if self.__isStarted:
-            for name in self.__patches:
-                patch = self.__patches[name]
-                patch.stop()
-            self.__mocks.clear()  # not born from a unit test
-            self.__isStarted = False
+        if self.__stack is not None:
+            for name in self.__mocks:
+                self.__mocks[name] = None
+            self.__stack.close()
+            self.__stack = None
 
     def __enter__(self):
         return self.start()
@@ -70,8 +76,8 @@ class _PatchCollection(object):
         self.stop()
 
     def __getattr__(self, name):
-        if not self.__isStarted or name not in self.__mocks:
-            format = 'There was no patch with the given name: {0}'
+        if self.__stack is None or name not in self.__mocks:
+            format = 'There was no mock with the given name: {0}'
             message = format.format(name)
             raise AttributeError(message)
         return self.__mocks[name]
